@@ -8,22 +8,22 @@ MACHINES = {
 	:disks => {
 		:sata1 => {
 			:dfile => home + '/VirtualBox VMs/disks/sata1.vdi',
-			:size => 250,
+			:size => 10000,
 			:port => 1
 		},
 		:sata2 => {
                         :dfile => home + '/VirtualBox VMs/disks/sata2.vdi',
-                        :size => 250, # Megabytes
+                        :size => 10000, # Megabytes
 			:port => 2
 		},
                 :sata3 => {
                         :dfile => home + '/VirtualBox VMs/disks/sata3.vdi',
-                        :size => 250,
+                        :size => 2500,
                         :port => 3
                 },
                 :sata4 => {
                         :dfile => home + '/VirtualBox VMs/disks/sata4.vdi',
-                        :size => 250, # Megabytes
+                        :size => 2500, # Megabytes
                         :port => 4
                 },
                 :sata5 => {
@@ -76,8 +76,7 @@ Vagrant.configure("2") do |config|
  	  box.vm.provision "shell", inline: <<-SHELL
 	      mkdir -p ~root/.ssh
               cp ~vagrant/.ssh/auth* ~root/.ssh
-	      yum install -y mdadm smartmontools hdparm gdisk
-	      chmod +x /vagrant/mdadm.sh && /vagrant/mdadm.sh
+	      yum install -y mdadm smartmontools hdparm gdisk lvm2 xfsdump
   	  SHELL
 
       end
