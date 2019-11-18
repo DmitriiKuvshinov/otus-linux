@@ -37,3 +37,13 @@
 ## mdadm.sh
   Скрипт прописан в Vagrantfile в разделе SHELL, что в свою очередь выполнится при билде ВМ и подключит к ВМ поднятый RAID
 
+# Home work 3. LVM
+
+## Что было сделано
+ - Расширение LVM
+ - Уменьшение LV
+ - LVM Snapshot
+ - LVM Mirroring
+
+## Как проверить
+ Лог процедур находится тут [https://github.com/DmitriiKuvshinov/otus-linux/blob/homework-3/log/log.md]
