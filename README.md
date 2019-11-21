@@ -56,3 +56,120 @@
  - Попасть в систему без пароля. Способ 3: добавлāем rw init=/sysroot/binsh и нажимаем сtrl-x для загрузки в систему (Примечание: необходимо удалить все после объявления ядра системы)
  - Переименована VolumeGroup
  - Добавлен модуль в initrd. ![Скрин](https://github.com/DmitriiKuvshinov/otus-linux/blob/homework-4/screenshots/Screenshot%202019-11-19%20at%2012.56.01.png)
+
+ # Home work 5. Инициализация системы. Systemd и SysV. 
+
+ ## Что было сделано
+  ### Написатþ сервис
+    Делаем конфиг файл
+    ```
+    nano /etc/sysconfig/watchlog
+    WORD="HEAD"
+    LOG=/var/log/watchlog.log
+    ```
+    Заменил ALERT на HEAD, т.к. в качестве примера возьму аксес лог nginx
+    Создаем скрипт
+    ```
+  #!/bin/bash
+  WORD=$1
+  LOG=$2
+  DATE=`date`
+  logger "$DATE: i'm a live"
+  if grep $WORD $LOG &> /dev/null
+    then
+    logger "$DATE: I found word, Master!"
+    else
+    exit 0
+  fi
+    ```
+    Создаем юниты таймера и службы мониторинга лога
+    ```
+    nano /etc/systemd/system/watchlog.timer
+
+  [Unit]
+    Description=Run watchlog script every 30 second
+  [Timer]
+    # Run every 30 second
+    OnCalendar=*:*:0/30
+    Unit=watchlog.service
+  [Install]
+    WantedBy=multi-user.target
+
+    nano /etc/sysconfig/watchlog.service
+
+  [Unit]
+    Description=My watchlog service
+  [Service]
+    Type=oneshot
+    EnvironmentFile=/etc/sysconfig/watchdog
+    ExecStart=/opt/watchlog.sh $WORD $LOG
+    ```
+Запускаем юнит 
+```
+systemctl start watchdog.timet
+```
+ ### httpd
+
+Установим 
+```
+yum install epel-release -y && yum install spawn-fcgi php php-cli mod_fcgid httpd -y
+```
+Изменяем конфиг, создаем юнит. Запускаемся и проверям
+```
+[root@otuslinux ~]# systemctl status spawn-fcgi
+● spawn-fcgi.service - Spawn-fcgi startup service by Otus
+   Loaded: loaded (/etc/systemd/system/spawn-fcgi.service; disabled; vendor preset: disabled)
+   Active: active (running) since Чт 2019-11-21 09:17:08 UTC; 5s ago
+ Main PID: 3946 (php-cgi)
+   CGroup: /system.slice/spawn-fcgi.service
+           ├─3946 /usr/bin/php-cgi
+           ├─3947 /usr/bin/php-cgi
+           ├─3948 /usr/bin/php-cgi
+           ├─3949 /usr/bin/php-cgi
+           ├─3950 /usr/bin/php-cgi
+           ├─3951 /usr/bin/php-cgi
+           ├─3952 /usr/bin/php-cgi
+           ├─3953 /usr/bin/php-cgi
+           ├─3954 /usr/bin/php-cgi
+           ├─3955 /usr/bin/php-cgi
+           ├─3956 /usr/bin/php-cgi
+           ├─3957 /usr/bin/php-cgi
+           ├─3958 /usr/bin/php-cgi
+           ├─3959 /usr/bin/php-cgi
+           ├─3960 /usr/bin/php-cgi
+           ├─3961 /usr/bin/php-cgi
+           ├─3962 /usr/bin/php-cgi
+           ├─3963 /usr/bin/php-cgi
+           ├─3964 /usr/bin/php-cgi
+           ├─3965 /usr/bin/php-cgi
+           ├─3966 /usr/bin/php-cgi
+           ├─3967 /usr/bin/php-cgi
+           ├─3968 /usr/bin/php-cgi
+           ├─3969 /usr/bin/php-cgi
+           ├─3970 /usr/bin/php-cgi
+           ├─3971 /usr/bin/php-cgi
+           ├─3972 /usr/bin/php-cgi
+           ├─3973 /usr/bin/php-cgi
+           ├─3974 /usr/bin/php-cgi
+           ├─3975 /usr/bin/php-cgi
+           ├─3976 /usr/bin/php-cgi
+           ├─3977 /usr/bin/php-cgi
+           └─3978 /usr/bin/php-cgi
+
+ноя 21 09:17:08 otuslinux systemd[1]: Started Spawn-fcgi startup service by Otus.
+ноя 21 09:17:08 otuslinux systemd[1]: Starting Spawn-fcgi startup service by Otus...
+```
+Запустим 2 юнита httpd. Создаем конфиги в /etc/sysconfig и /etc/httpd/conf
+Копируем юнит и изменим параметр EnvironmentFile=/etc/sysconfig/httpd-%I
+```
+cp /usr/lib/systemd/system/httpd.service /etc/systemd/system/httpd@.service
+```
+Стартуем
+```
+[root@otuslinux conf]£ systemctl start httpd@first
+[root@otuslinux conf]£ systemctl start httpd@second
+[root@otuslinux conf]£ ss -tnulp | grep httpd
+tcp    LISTEN     0      128      :::8080                 :::*                   users:(("httpd",pid=3886,fd=4),("httpd",pid=3885,fd=4),("httpd",pid=3884,fd=4),("httpd",pid=3883,fd=4),("httpd",pid=3882,fd=4),("httpd",pid=3881,fd=4),("httpd",pid=3880,fd=4))
+tcp    LISTEN     0      128      :::80                   :::*                   users:(("httpd",pid=3873,fd=4),("httpd",pid=3872,fd=4),("httpd",pid=3871,fd=4),("httpd",pid=3870,fd=4),("httpd",pid=3869,fd=4),("httpd",pid=3868,fd=4),("httpd",pid=3867,fd=4))
+[root@otuslinux conf]£ 
+```
