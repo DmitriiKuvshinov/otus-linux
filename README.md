@@ -108,7 +108,7 @@
 ```
 systemctl start watchdog.timet
 ```
-Получаем [https://github.com/DmitriiKuvshinov/otus-linux/blob/homework-5/screenshots/Screenshot%202019-11-21%20at%2012.14.12.png]
+Получаем ![Скрин](https://github.com/DmitriiKuvshinov/otus-linux/blob/homework-5/screenshots/Screenshot%202019-11-21%20at%2012.14.12.png)
  ### httpd
 
 Установим 
