@@ -204,3 +204,32 @@ tcp    LISTEN     0      128      :::80                   :::*                  
 Отправка на почта функцией sendamil. Лог писем смотрим тут: /var/mail/root
 Блокировка от мультизапуска: срздаем lock файл и при каждом запуске скрипта проверяем его наличие
 
+# Home work 7. RPM пакеты
+
+Изменим Vafrantfile и установим необходимые пакеты при сборке
+Скачаем nginx и openssl пакеты. Изменим spec файл nginx. Запустим build.
+Пакеты собрались, устанавливаем
+Создаем репозиторий и публикуем туда 2 пакета: перкона и собранный nginx
+Done
+
+## *
+Установим докер на центось, запустим контейнер и укажем директорию для репозитория
+```
+docker run --name nginx -v /srv/nginx/:/usr/share/nginx/html -p 80:80 -d nginx
+```
+Установим nano внуть контейнера и отредактируем nginx файл репеозитория. Перезапустим nginx
+```
+[root@otuslinux var]# curl localhost
+<html>
+<head><title>Index of /</title></head>
+<body>
+<h1>Index of /</h1><hr><pre><a href="../">../</a>
+<a href="repodata/">repodata/</a>                                          28-Nov-2019 08:41                   -
+<a href="test/">test/</a>                                              28-Nov-2019 08:55                   -
+<a href="1">1</a>                                                  28-Nov-2019 08:55                   0
+<a href="apacheds-2.0.0.AM25-x86_64.rpm">apacheds-2.0.0.AM25-x86_64.rpm</a>                     28-Nov-2019 08:41            20022058
+<a href="nginx-1.14.1-1.el7_4.ngx.x86_64.rpm">nginx-1.14.1-1.el7_4.ngx.x86_64.rpm</a>                28-Nov-2019 08:41             1974380
+</pre><hr></body>
+</html>
+```
+(!HubDocker)[https://hub.docker.com/repository/docker/kuvshinov/nginxrepo]

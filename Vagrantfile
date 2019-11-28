@@ -78,7 +78,7 @@ Vagrant.configure("2") do |config|
  	  box.vm.provision "shell", inline: <<-SHELL
 	      mkdir -p ~root/.ssh
               cp ~vagrant/.ssh/auth* ~root/.ssh
-	      yum install -y mdadm smartmontools hdparm gdisk lvm2 xfsdump
+	      yum install -y mdadm smartmontools hdparm gdisk lvm2 xfsdump redhat-lsb-core wget rpmdevtools rpm-build createrepo yum-utils
   	  SHELL
 
       end
