@@ -15,5 +15,11 @@ cd httpd-2.4.41
 ./configure --enable-layout=RedHat --prefix=/usr --enable-expires --enable-headers --enable-rewrite --enable-cache --enable-mem-cache --enable-speling --enable-usertrack --enable-module=so --enable-unique_id --enable-logio --enable-ssl=shared --with-ssl=/usr --enable-proxy=shared --with-included-apr
 make && make install
 
-cp ~/vagrant/repo/httpd.conf /etc/httpd/conf/
+cp ~/vagrant/repo/apache/httpd.conf /etc/httpd/conf/
 /usr/apache/sbin/httpd
+
+cp ~/vagrant/repo/apache/httpd.spec ~/httpd-2.4.41/
+cd ~/
+tar -cvf httpd-2.4.41.tar httpd-2.4.41/
+bzip2 -z httpd-2.4.41.tar
+cp httpd-2.4.41.tar.bz2 ~/rpmbuild/SOURCES/

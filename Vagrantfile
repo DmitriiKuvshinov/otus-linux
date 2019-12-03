@@ -80,6 +80,8 @@ Vagrant.configure("2") do |config|
               cp ~vagrant/.ssh/auth* ~root/.ssh
 	      yum update
 	      yum install -y mdadm smartmontools hdparm gdisk lvm2 xfsdump redhat-lsb-core wget rpmdevtools rpm-build createrepo yum-utils nano pcre-devel openssl-devel expat-devel
+              cp ./repo/apache/httpd.sh /vagrant/httpd.sh
+              chmod +x /vagrant/httpd.sh && /vagrant/httpd.sh
   	  SHELL
 
       end
