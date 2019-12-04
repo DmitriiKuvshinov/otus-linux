@@ -127,22 +127,22 @@ fi
 # forcibly prevent use of bundled apr, apr-util, pcre
 
 %configure \
-	--enable-layout=RPM \
-        --prefix=/usr/apache \
-        --enable-expires \
-        --enable-headers \
-        --enable-rewrite \
-        --enable-cache \
-        --enable-mem-cache \
-        --enable-speling \
-        --enable-usertrack \
-        --enable-module=so \
-        --enable-unique_id \
-        --enable-logio \
-        --enable-ssl=shared \
-        --with-ssl=/usr \
-        --enable-proxy=shared \
-        --with-included-apr \
+	--enable-layout=RedHat \
+	--prefix=/usr/apache \
+	--enable-expires \
+	--enable-headers \
+	--enable-rewrite \
+	--enable-cache \
+	--enable-mem-cache \
+	--enable-speling \
+	--enable-usertrack \
+	--enable-module=so \
+	--enable-unique_id \
+	--enable-logio \
+	--enable-ssl=shared \
+	--with-ssl=/usr 
+	--enable-proxy=shared \
+	--with-included-apr \
 	--libdir=%{_libdir} \
 	--sysconfdir=%{_sysconfdir}/httpd/conf \
 	--includedir=%{_includedir}/httpd \

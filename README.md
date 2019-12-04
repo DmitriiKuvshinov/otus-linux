@@ -206,77 +206,15 @@ tcp    LISTEN     0      128      :::80                   :::*                  
 
 # Home work 7. RPM пакеты
 
-Изменим Vafrantfile и установим необходимые пакеты для сборки пакетов при инициализации машины
-Скачаем nginx и openssl пакеты. Изменим spec файл nginx. Запустим build.
-Пакеты собрались, устанавливаем
-Создаем репозиторий и публикуем туда 2 пакета: перкона и собранный nginx + openssl
-Отключаем SELinux:
-setenforce 0
-Проверяем:
-```
-[root@otuslinux repo]# curl localhost/
-<html>
-<head><title>Index of /</title></head>
-<body bgcolor="white">
-<h1>Index of /</h1><hr><pre><a href="../">../</a>
-<a href="repodata/">repodata/</a>                                          02-Dec-2019 07:26                   -
-<a href="nginx-1.14.1-1.el7_4.ngx.x86_64.rpm">nginx-1.14.1-1.el7_4.ngx.x86_64.rpm</a>                02-Dec-2019 07:23             1974352
-<a href="percona-release-0.1-6.noarch.rpm">percona-release-0.1-6.noarch.rpm</a>                   13-Jun-2018 06:34               14520
-</pre><hr></body>
-</html>
-```
-Done
-Переходим к публикации другого пакета. Будем использовать директорию /vagrant/repo и настроим эту папку как chroot
-Скачаем wget http://mirror.linux-ia64.org/apache/httpd/httpd-2.4.41.tar.gz. Все необходимые зависимости и пакеты ставим при деплое ВМ 
-Распаковываем архив. Запускаем внутри папки с исходниками:
-Подключим модули:
-./configure --enable-layout=RedHat --prefix=/usr --enable-expires --enable-headers --enable-rewrite --enable-cache --enable-mem-cache --enable-speling --enable-usertrack --enable-module=so --enable-unique_id --enable-logio --enable-ssl=shared --with-ssl=/usr --enable-proxy=shared --with-included-apr
+## Что было сделано
+Создан bash скрипт, который устанавливает необходимый (измененный) софт при инициализации ВМ
 
-Получаем ошибку:
-```
-configure: error: Bundled APR requested but not found at ./srclib/. Download and unpack the corresponding apr and apr-util packages to ./srclib/.
-```
-Скачиваем, распаковываем:
-```
-wget http://us.mirrors.quenda.co/apache//apr/apr-1.7.0.tar.gz
-wget http://us.mirrors.quenda.co/apache//apr/apr-util-1.6.1.tar.gz
-tar -xvf apr-util-1.6.1.tar.gz
-tar -xvf apr-1.7.0.tar.gz
-mv apr-1.7.0 apr
-mv apr-util-1.6.1 apr-util
-cd ../
-./configure --enable-layout=RedHat --prefix=/usr --enable-expires --enable-headers --enable-rewrite --enable-cache --enable-mem-cache --enable-speling --enable-usertrack --enable-module=so --enable-unique_id --enable-logio --enable-ssl=shared --with-ssl=/usr --enable-proxy=shared --with-included-apr
+## Как проверить
 
-make && make install
-```
-Установленный apache поместился тут: /usr/local/apache2. Конфиг тут: /etc/httpd/
-Изменим конфигурацию httpd.conf и запустим сервер. Проверяем
-```
-[root@otuslinux bin]# curl localhost
-<html><body><h1>It works!</h1></body></html>
-```
-Сделаем свой rpm пакет. Этого заапускаем rpmbuild и доустанавливаем зависимости: yum install -y libuuid-devel lua-devel libxml2-devel
-Запускаем билд: rpmbuild -bb ./httpd.spec
-
+Запустить vagrant up. Зайти в ВМ, выболнить sudo systemctl start nginx && systemctl status nginx
 
 ## *
-Установим докер на центось, запустим контейнер и укажем директорию для репозитория
-```
-docker run --name nginx -v /srv/nginx/:/usr/share/nginx/html -p 80:80 -d nginx
-```
-Установим nano внуть контейнера и отредактируем nginx файл репеозитория. Перезапустим nginx
-```
-[root@otuslinux var]# curl localhost
-<html>
-<head><title>Index of /</title></head>
-<body>
-<h1>Index of /</h1><hr><pre><a href="../">../</a>
-<a href="repodata/">repodata/</a>                                          28-Nov-2019 08:41                   -
-<a href="test/">test/</a>                                              28-Nov-2019 08:55                   -
-<a href="1">1</a>                                                  28-Nov-2019 08:55                   0
-<a href="apacheds-2.0.0.AM25-x86_64.rpm">apacheds-2.0.0.AM25-x86_64.rpm</a>                     28-Nov-2019 08:41            20022058
-<a href="nginx-1.14.1-1.el7_4.ngx.x86_64.rpm">nginx-1.14.1-1.el7_4.ngx.x86_64.rpm</a>                28-Nov-2019 08:41             1974380
-</pre><hr></body>
-</html>
-```
+Подготовим Docker файл
+Заранее был подготовлен rpm пакет (из предыдущего задания) и установим его в контейнер при билде
+
 (!HubDocker)[https://hub.docker.com/repository/docker/kuvshinov/nginxrepo]

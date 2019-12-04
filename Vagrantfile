@@ -13,7 +13,7 @@ MACHINES = {
 		},
 		:sata2 => {
                         :dfile => home + '/VirtualBox VMs/disks/sata2.vdi',
-                        :size => 10000, # Megabytes
+                        :size => 2500, # Megabytes
 			:port => 2
 		},
                 :sata3 => {
@@ -45,7 +45,6 @@ MACHINES = {
 
 Vagrant.configure("2") do |config|
 
-  config.vm.box_version = "1804.02"
   MACHINES.each do |boxname, boxconfig|
 
       config.vm.define boxname do |box|
@@ -80,8 +79,7 @@ Vagrant.configure("2") do |config|
               cp ~vagrant/.ssh/auth* ~root/.ssh
 	      yum update
 	      yum install -y mdadm smartmontools hdparm gdisk lvm2 xfsdump redhat-lsb-core wget rpmdevtools rpm-build createrepo yum-utils nano pcre-devel openssl-devel expat-devel
-              cp ./repo/apache/httpd.sh /vagrant/httpd.sh
-              chmod +x /vagrant/httpd.sh && /vagrant/httpd.sh
+              chmod +x /vagrant/repo/nginx/nginx.sh && /vagrant/repo/nginx/nginx.sh
   	  SHELL
 
       end
