@@ -216,5 +216,9 @@ tcp    LISTEN     0      128      :::80                   :::*                  
 ## *
 Подготовим Docker файл
 Заранее был подготовлен rpm пакет (из предыдущего задания) и установим его в контейнер при билде
+Как проверить:
+docker run -it kuvshinov/crm /bin/bash
+/usr/sbin/nginx
+lsof -i
 
-(!HubDocker)[https://hub.docker.com/repository/docker/kuvshinov/nginxrepo]
+(!HubDocker)[https://hub.docker.com/repository/docker/kuvshinov/rpm]
