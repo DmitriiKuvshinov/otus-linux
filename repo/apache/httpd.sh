@@ -9,7 +9,7 @@ sudo yum-builddep -y /root/rpmbuild/SPECS/apr.spec
 sudo rpmbuild -bb /root/rpmbuild/SPECS/apr.spec
 sudo yum install -y /root/rpmbuild/RPMS/x86_64/apr-1.7.0-1.x86_64.rpm
 sudo yum install -y /root/rpmbuild/RPMS/x86_64/apr-devel-1.7.0-1.x86_64.rpm
-sudo rpmbuild -ts apr-util-1.6.1.tar.bz2
+sudo rpmbuild -ts /root/apr-util-1.6.1.tar.bz2
 sudo rpm -i /root/rpmbuild/SRPMS/apr-util-1.6.1-1.src.rpm
 sudo yum install -y -q epel-release
 sudo yum-builddep -y /root/rpmbuild/SPECS/apr-util.spec
