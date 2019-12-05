@@ -233,3 +233,24 @@ ps ax выводиит 5 параметров: PID, TTY, State, CPU Time, Comman
 
 ## Как проверить
 запустить скрипт: scripts/ps/1.sh
+
+# Homw work 9. Docker
+## Ответы
+Образ - RO шаблон для создания контейнера. Создается и изменяться через Dockerfile (или берется из dockerhub).
+Контейнер - создается из шаблона образа. Контейнер можно вертеть как хочешь
+
+## Что было сделано
+Написан  Dockerfile, в котором происходит загрузка образа, копирование кастомной странички index.html в рут директорию веб-сервера
+
+## Как проверить
+Выполнить команду: docker run -d -p 100:80 kuvshinov/hw9
+Открыть в браузере ссылку: http://localhost:100
+
+## *
+
+Написан docker-compose файлик, который поднимает nginx+php-fpm из ранее подготовленных образов
+
+## Как проверить:
+Скачать директорию: https://github.com/DmitriiKuvshinov/otus-linux/tree/homework-9/docker/docker-nginx-php
+Запустить docker-compose up -d
+Перейти в браузере по ссылке: http://localhost
