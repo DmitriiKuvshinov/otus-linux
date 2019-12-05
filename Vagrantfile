@@ -78,9 +78,8 @@ Vagrant.configure("2") do |config|
 	      mkdir -p ~root/.ssh
               cp ~vagrant/.ssh/auth* ~root/.ssh
 	      yum update
-	      yum install -y mdadm smartmontools hdparm gdisk lvm2 xfsdump redhat-lsb-core wget rpmdevtools rpm-build createrepo yum-utils nano pcre-devel openssl-devel expat-devel
-              chmod +x /vagrant/repo/nginx/nginx.sh && /vagrant/repo/nginx/nginx.sh
-  	  SHELL
+	      yum install -y mdadm smartmontools hdparm gdisk lvm2 xfsdump redhat-lsb-core wget yum-utils nano strace
+	  SHELL
 
       end
   end

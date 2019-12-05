@@ -222,3 +222,14 @@ docker run -it kuvshinov/crm /bin/bash
 lsof -i
 
 (!HubDocker)[https://hub.docker.com/repository/docker/kuvshinov/rpm]
+
+# Home work 8. Управление процессами
+
+## Что было сделано: написать свою реализацию ps ax используя анализ /proc
+
+ps ax выводиит 5 параметров: PID, TTY, State, CPU Time, Command
+Забираем все эти параметры в цикле из /proc/{stat,status.cmdline}
+Сложности возникли с CPU Time, поскольку в proc указывается велечина в процессорных тактах
+
+## Как проверить
+запустить скрипт: scripts/ps/1.sh
