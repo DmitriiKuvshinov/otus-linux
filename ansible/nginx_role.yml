@@ -1,0 +1,7 @@
+---
+- name: Configure App
+  hosts: host2
+  become: true
+
+  roles:
+    - nginx

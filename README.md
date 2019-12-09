@@ -255,3 +255,51 @@ ps ax выводиит 5 параметров: PID, TTY, State, CPU Time, Comman
 Скачать директорию: https://github.com/DmitriiKuvshinov/otus-linux/tree/homework-9/docker/docker-nginx-php
 Запустить docker-compose up -d
 Перейти в браузере по ссылке: http://localhost
+
+# Home Work 10. Ansible 
+
+## Что было сделано
+
+Конфигурируем ansible: inventory файл содержит информацию о хостах и способе подклчюения к ним
+templates - шаблоны конфигураций
+playbooks - ямль файлы с задачами для выполнения при помощи ansible
+
+Для работы был взят стенд из личного кабинета с 2-мя хостами
+Запускаем ansible-playbook с командой --limit (т.к. в плейбуках казаны все хосты)
+Например: ansible-playbook playbooks/nginx.yml --limit host1
+После делаем curl запрос: curl http://localhost:8080
+
+## Как проверить
+В директории ansible выполнить vagrant up
+После выполнить: ansible-playbook playbooks/nginx.yml --limit host1
+
+ ## *
+ Inventory используем из прошлого задания
+ Для организации хранения ролей применим ansible-galaxy. В директории roles выполним ansible-galaxy init nginx
+ После выполнения команды будет создана иерархия папок
+ ```
+ minint-jtgafr6:roles dmitrii$ tree nginx/
+nginx/
+├── README.md
+├── defaults
+│   └── main.yml
+├── files
+├── handlers
+│   └── main.yml
+├── meta
+│   └── main.yml
+├── tasks
+│   └── main.yml
+├── templates
+├── tests
+│   ├── inventory
+│   └── test.yml
+└── vars
+    └── main.yml
+ ```
+
+ Кратко:
+ defaults - содержит перечень дефолтных настроек роли. В нашем случае - порт
+ tasks - содержит задания по установке nginx и копированию файла конфигурации
+ handlers - содержит команды для перезапуска/перезагрузки сервиса
+ templates - содержит конфиг для nginx
