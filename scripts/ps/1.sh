@@ -9,10 +9,12 @@ do
     stat=$(cat /proc/$i/stat 2>/dev/null);
     cmd=$(cat /proc/$i/status 2>/dev/null | grep Name | awk {'print $2'});
     cmd_f=$(cat /proc/$i/cmdline 2>/dev/null);
+    if [[ -z $cmd ]]; then
+        continue
+    fi
     state=$(cat /proc/$i/status 2>/dev/null | grep State | awk {'print $2'});
 
     pid=$(echo $stat | awk '{print $1}' 2>/dev/null);
-    tty=$(echo $stat | awk '{print $7}' 2>/dev/null);
     utime=$(echo $stat | awk '{print $13}' 2>/dev/null);
     stime=$(echo $stat | awk '{print $14}' 2>/dev/null);
 
@@ -25,15 +27,22 @@ do
     tty_maj_bin=$(echo $tty_of_proc_binary | sed "s/[0-1]\{8\}$//g")
     tty_min_dec=$((2#$tty_min_bin))
     tty_maj_dec=$((2#$tty_maj_bin))
+    result_tty=''
+    if  ls -la /dev/pts/ | awk '{print $5,$6}' | grep -q "$tty_maj_dec, $tty_min_dec"; then
+            result_tty="pts/1"
+                echo "pts"
+        fi
     for file in $(find /sys/dev/ -name $tty_maj_dec:$tty_min_dec)
         do
+            result_tty=''
             source ${file}/uevent;
             result_tty=$DEVNAME
         done;
-    if [[ -z $result_tty ]]; then
+  if [[ -z $result_tty ]]; then
         result_tty='?'
     fi
-    echo "$i $result_tty $state  $pid_time  [$cmd $cmd_f]"? >> $ps_file;
+    echo "$i $result_tty $state  $pid_time  [$cmd $cmd_f]"  >> $ps_file;
 done
 
-cat $ps_file
+cat $ps_file 
+
