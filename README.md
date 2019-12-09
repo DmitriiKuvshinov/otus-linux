@@ -259,7 +259,7 @@ ps ax выводиит 5 параметров: PID, TTY, State, CPU Time, Comman
 # Home Work 10. Ansible 
 
 ## Что было сделано
-
+ [https://github.com/DmitriiKuvshinov/otus-linux/tree/homework-10/ansible]
 Конфигурируем ansible: inventory файл содержит информацию о хостах и способе подклчюения к ним
 templates - шаблоны конфигураций
 playbooks - ямль файлы с задачами для выполнения при помощи ansible
@@ -303,3 +303,16 @@ nginx/
  tasks - содержит задания по установке nginx и копированию файла конфигурации
  handlers - содержит команды для перезапуска/перезагрузки сервиса
  templates - содержит конфиг для nginx
+
+ Как проверить.
+ Убиваем тестовый стенд и поднимаем чистый. Выполняем ansible-playbook nginx_role.yml --check (для проверки синтаксиса). ansible-playbook nginx_role.yml - для применения изменений
+ Проверяем: curl http://192.168.11.151:8080
+ ```
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Welcome to CentOS</title>
+  <style rel="stylesheet" type="text/css"> 
+...
+```
+ 
