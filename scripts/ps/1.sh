@@ -10,7 +10,7 @@ do
     cmd=$(cat /proc/$i/status 2>/dev/null | grep Name | awk {'print $2'});
     cmd_f=$(cat /proc/$i/cmdline 2>/dev/null);
     if [[ -z $cmd ]]; then
-        continue
+	continue
     fi
     state=$(cat /proc/$i/status 2>/dev/null | grep State | awk {'print $2'});
 
@@ -29,20 +29,19 @@ do
     tty_maj_dec=$((2#$tty_maj_bin))
     result_tty=''
     if  ls -la /dev/pts/ | awk '{print $5,$6}' | grep -q "$tty_maj_dec, $tty_min_dec"; then
-            result_tty="pts/1"
-                echo "pts"
+	    result_tty='pts\'
+            result_tty+="$(ls -la /dev/pts/ | grep "$tty_maj_dec, $tty_min_dec" | awk '{print $10}')"
         fi
     for file in $(find /sys/dev/ -name $tty_maj_dec:$tty_min_dec)
         do
-            result_tty=''
+	    result_tty=''
             source ${file}/uevent;
             result_tty=$DEVNAME
         done;
   if [[ -z $result_tty ]]; then
-        result_tty='?'
+	result_tty='?'
     fi
-    echo "$i $result_tty $state  $pid_time  [$cmd $cmd_f]"  >> $ps_file;
+    echo "$i $result_tty $state  $pid_time  [$cmd $cmd_f]"? >> $ps_file;
 done
 
-cat $ps_file 
-
+cat $ps_file
