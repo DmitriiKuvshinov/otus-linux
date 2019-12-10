@@ -230,6 +230,8 @@ lsof -i
 ps ax выводиит 5 параметров: PID, TTY, State, CPU Time, Command
 Забираем все эти параметры в цикле из /proc/{stat,status.cmdline}
 Сложности возникли с CPU Time, поскольку в proc указывается велечина в процессорных тактах
+Для запуска необходимо установить bc
+apt install bc
 
 ## Как проверить
 запустить скрипт: scripts/ps/1.sh
