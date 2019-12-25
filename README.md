@@ -322,3 +322,115 @@ nginx/
 
  ## Как проверить:
  В папке screenshots размещены 2 скрина: zabbix и grafana. При необходимости могу дополнить
+
+# Home Work 12. PAM
+* Какие UID создались у пользователей? - 1001, 1002
+[root@otuslinux ~]# cat /etc/passwd | grep user
+rpcuser:x:29:29:RPC Service User:/var/lib/nfs:/sbin/nologin
+user1:x:1001:1001::/home/user1:/bin/bash
+user2:x:1002:1002::/home/user2:/bin/bash
+
+-m, --create-home, Create the user's home directory
+-s, --shell SHELL, The name of the user's login shell
+Аналогом можно использовать adduser без дополнительных ключей
+
+## Создаем группу и добавляем туда пользователей
+[root@otuslinux ~]# id user1
+uid=1001(user1) gid=1001(user1) groups=1001(user1),1003(admins)
+[root@otuslinux ~]# id user2
+uid=1002(user2) gid=1002(user2) groups=1002(user2),1003(admins)
+* Через usermod сделайте группу admins основной для  user1
+```
+[root@otuslinux ~]# usermod -g admins user1
+[root@otuslinux ~]# id user1
+uid=1001(user1) gid=1003(admins) groups=1003(admins)
+```
+
+## Создать каталог от рута и дать права группе admins туда писать
+* что означают права 770 ? - разрешения на чтение, запись и выполнение, предоставленные как обычному пользователю, так и владельцу группы файла.
+* проверьте с какой группой создались файлы от каждого пользователя. Как думаете - почему? - потому что команда touch выполнялась от имени другого пользователя.
+```
+[root@otuslinux upload]# ll
+total 0
+-rw-r--r--. 1 user1 admins 0 дек 25 09:42 user1
+-rw-r--r--. 1 user2 user2  0 дек 25 09:42 user2
+```
+
+## Создать пользователя user3 и дать ему права писать в /opt/uploads
+```
+[root@otuslinux upload]# getfacl /opt/upload
+getfacl: Removing leading '/' from absolute path names
+# file: opt/upload
+# owner: root
+# group: admins
+user::rwx
+user:user3:rwx
+group::rwx
+mask::rwx
+other::---
+[root@otuslinux upload]# sudo -u user3 touch user3
+[root@otuslinux upload]# ll
+total 0
+-rw-r--r--. 1 user1 admins 0 дек 25 09:42 user1
+-rw-r--r--. 1 user2 user2  0 дек 25 09:42 user2
+-rw-r--r--. 1 user3 user3  0 дек 25 09:47 user3
+```
+
+## Установить GUID флаг на директорию /opt/uploads
+```
+[root@otuslinux upload]# sudo -u user3 touch user3_1
+[root@otuslinux upload]# ls -la
+total 0
+drwxrws---+ 2 root  admins 60 дек 25 09:48 .
+drwxr-xr-x. 4 root  root   53 дек 25 09:40 ..
+-rw-r--r--. 1 user1 admins  0 дек 25 09:42 user1
+-rw-r--r--. 1 user2 user2   0 дек 25 09:42 user2
+-rw-r--r--. 1 user3 user3   0 дек 25 09:47 user3
+-rw-r--r--. 1 user3 admins  0 дек 25 09:48 user3_1
+```
+chmod g+s устанавливает идентификатор группы (setgid) в текущем каталоге
+
+## Установить  SUID  флаг на выполняемый файл
+```
+[root@otuslinux upload]# sudo -u user3 cat /etc/shadow 
+cat: /etc/shadow: Permission denied       
+[root@otuslinux upload]# chmod u+s /bin/cat
+[root@otuslinux upload]# sudo -u user3 cat /etc/shadow 
+root:$1$QDyPlph/$oaAX/xNRf3aiW3l27NIUA/::0:99999:7:::
+bin:*:17834:0:99999:7:::
+daemon:*:17834:0:99999:7:::
+adm:*:17834:0:99999:7:::
+lp:*:17834:0:99999:7:::
+sync:*:17834:0:99999:7:::
+shutdown:*:17834:0:99999:7:::
+halt:*:17834:0:99999:7:::
+mail:*:17834:0:99999:7:::
+operator:*:17834:0:99999:7:::
+games:*:17834:0:99999:7:::
+ftp:*:17834:0:99999:7:::
+nobody:*:17834:0:99999:7:::
+systemd-network:!!:18048::::::
+dbus:!!:18048::::::
+polkitd:!!:18048::::::
+rpc:!!:18048:0:99999:7:::
+rpcuser:!!:18048::::::
+nfsnobody:!!:18048::::::
+sshd:!!:18048::::::
+postfix:!!:18048::::::
+chrony:!!:18048::::::
+vagrant:$1$C93uBBDg$pqzqtS3a9llsERlv..YKs1::0:99999:7:::
+vboxadd:!!:18255::::::
+user1:!!:18255:0:99999:7:::
+user2:!!:18255:0:99999:7:::
+user3:!!:18255:0:99999:7:::
+```
+Если SUID бит установлен на файл и пользователь выполнил его. Процесс будет иметь те же права что и владелец файла.
+
+##  Сменить владельца  /opt/uploads  на user3 и добавить sticky bit
+* Объясните почему user3 смог удалить файл, который ему не принадлежит - user3 является владельцем директории. делаю что хочу
+* Создайте теперь файл от user1 и удалите его пользователем user1 - удалит. user1, создал, может и удалить.
+* Объясните результат. Фокус с user2  не пройдет, поскольку он не является ни владельцем директории, ни создателем файла.
+
+## Записи в sudoers
+* почему у вас не получилось? - необходимо ввести пароль для user3. Т.к. он не является члоеном группы sudo
+* добавьте запись в /etc/sudoers.d/admins разрешающий группе admins любые команды с вводом пароля - %admins ALL=(ALL) ALL
