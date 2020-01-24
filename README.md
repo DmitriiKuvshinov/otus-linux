@@ -442,3 +442,7 @@ login ; * ; !admins ; SaSu0000-2400 - запрещаем login для всех �
 
 Добваляем в /etc/pam.d/login в конце:
 account    required     pam_time.so
+
+# Home Work 13. Backup BORG
+
+Дз находится тут: [https://github.com/DmitriiKuvshinov/otus-linux/tree/homework-13/homework-13]
