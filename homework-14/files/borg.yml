@@ -1,0 +1,21 @@
+---
+- name: Borg backup env
+  hosts: all
+  become: true
+  tasks:
+    - name: Create user for repo
+      user:
+        name: borg5
+        createhome: yes 
+    - name: Ensures .ssh dir exists
+      file: path=/home/borg/.ssh state=directory
+    - name: Add authorized_keys
+      template:
+        src: authorized_keys
+        dest: /home/borg5/.ssh/authorized_keys
+    - name: Change file ownership, group and permissions
+      file:
+        path: /home/borg5/.ssh
+        recurse: yes
+        owner: borg5
+        group: borg5

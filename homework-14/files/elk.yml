@@ -1,0 +1,51 @@
+---
+- name: NGINX | Install and configure NGINX
+  hosts: all
+  become: true
+  tasks:
+    - name: Install EPEL Repo package from standard repo
+      yum:
+        name: epel-release
+        state: present
+    - name: Install JDK-devel
+      yum:
+        name: java-1.8.0-openjdk-devel
+        state: latest
+    - name: Install java-openjdk
+      yum:
+        name: java-1.8.0-openjdk
+        state: latest
+    - name: Copy repo ELK
+      template:
+        src: ./elasticsearch.repo
+        dest: /etc/yum.repos.d/elasticsearch.repo
+    - name: Add GPG ELK
+      command: rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    - name: Install ELK
+      yum:
+        name: elasticsearch
+        state: latest
+    - name: Enable Elasticsearch
+      command: systemctl enable --now elasticsearch.service
+    - name: Install Kibana
+      yum:
+        name: kibana
+        state: latest
+    - name: Copy kibana conf
+      template:
+        src: ./kibana.yml
+        dest: /etc/kibana/kibana.yml
+    - name: Enable Kibana
+      command: systemctl enable --now kibana
+    - name: Logstrash | Download rpm
+      get_url:
+        url: https://artifacts.elastic.co/downloads/logstash/logstash-7.3.2.rpm
+        dest: /tmp/logstash-7.3.2.rpm
+    - name: Logstrash | Install rpm
+      yum:
+       name: /tmp/logstash-7.3.2.rpm
+       state: present
+    - name: Copy logstash conf | Input
+      template:
+        src: nginx.conf
+        dest: /etc/logstash/conf.d
