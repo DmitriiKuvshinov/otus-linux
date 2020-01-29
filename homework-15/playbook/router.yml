@@ -1,0 +1,50 @@
+---
+- name: Configure linux router
+  host: all
+  become: true
+  tasks:
+    - name: Configure ipv4 forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        sysctl_set: yes
+        state: present
+        reload: yes
+    - name: install packages
+      apt:
+         pkg:
+         - isc-dhcp-server
+         - bind9
+    - name: DHCP | Configure ыsubnets
+      template:
+        src: conf/dhcp.conf
+        dest: /etc/dhcp/dhcpd.conf
+      notify:
+        - restart dhcp
+    - name: DHCP | Configure interface
+      command: echo "INTERFACES=eth1" > /etc/default/isc-dhcp-server
+      notify:
+        - restart dhcp
+    - name: Iptables | FORWARD
+      command: iptables -t filter -A FORWARD -i eth1 -o eth0 -s 192.168.1.0/24 -j ACCEPT
+    - name: Iptables | FORWARD
+      command: iptables -t filter -A FORWARD -i eth0 -o eth1 -d 192.168.255.0/24 -j ACCEPT
+    - name: Iptables | NAT
+      command: iptables -t nat -A POSTROUTING -s 192.168.255.0/24 -o eth0 -j MASQUERADE
+    - name: Iptables | save
+      command: iptables-save -c > /etc/iptables.rules
+    - name: Iptables | restore after reboot
+      src: iptables-restore
+      dest: /etc/network/if-pre-up.d/iptables-restore
+      mode: '0755'
+  handlers:
+    - name: restart bind
+      systemd:
+        name: bind9
+        state: restarted
+        enabled: yes
+    - name: restart dhcp
+      systemd:
+        name: isc-dhcp-server
+        state: restarted
+        enabled: yes
