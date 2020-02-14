@@ -1,7 +1,16 @@
-## Создадим инфраструктуру через Vagrantfile
-Поднимаем 2 машины: клиент и сервер
+      server {
+      index index.php index.html;
+      server_name php-docker.local;
+      error_log  /var/log/nginx/error.log;
+      access_log /var/log/nginx/access.log;
+      root /var/www/html/symfony/public;
 
-## Сконфигурируем 2 машинки через ansible
-Выполянем: 
-ansible-playbook files/web.yml --limit web
-ansible-playbook files/elk.yml --limit log
+      location ~ \.php$ {
+          fastcgi_split_path_info ^(.+\.php)(/.+)$;
+          fastcgi_pass symfony:9000;
+          fastcgi_index index.php;
+          include fastcgi_params;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          fastcgi_param PATH_INFO $fastcgi_path_info;
+      }
+  }

@@ -1,0 +1,22 @@
+---
+- name: Install ipa-client
+  hosts: client    
+  become: true
+  tasks:
+    - name: set hostname 
+      hostname:
+        name: client.domain.local
+    - name: Write hosts file
+      shell: |
+      echo '192.168.11.100 ipa.domain.local' >> /etc/hosts
+    - name: Setup ipa-client
+      command:  >
+        ipa-client-install
+        --mkhomedir
+        --server=ipa.domain.local
+        --realm=DOMAIN.LOCAL
+        --domain=domain.local
+        --hostname=client.domaion.local
+        --password=password
+        --principal=admin
+        --unattended
