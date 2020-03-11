@@ -1,0 +1,278 @@
+# -*- mode: ruby -*-
+# vim: set ft=ruby :
+# -*- mode: ruby -*-
+# vim: set ft=ruby :
+home = ENV['HOME']
+
+MACHINES = {
+:inetRouter => {
+        :box_name => "centos/6",
+        #:public => {:ip => '10.10.10.1', :adapter => 1},
+        :net => [
+                   {ip: '10.10.0.4', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "inet"},
+                ]
+  },
+  :centralRouter => {
+        :box_name => "centos/7",
+	:disks => {
+		:sata1 => {
+			:dfile => home + '/VirtualBox VMs/disks/sata1.vdi',
+			:size => 5000,
+			:port => 1
+		}
+        },
+        :net => [
+                   {ip: '10.10.0.3', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "inet"},
+                   {ip: '10.10.1.1', adapter: 3, netmask: "255.255.255.0", virtualbox__intnet: "uplinkoffice1"},
+                   {ip: '10.10.2.1', adapter: 4, netmask: "255.255.255.0", virtualbox__intnet: "uplinkoffice2"},
+                   {ip: '192.168.2.1', adapter: 5, netmask: "255.255.255.0", virtualbox__intnet: "uplinkcentral"},
+                   {ip: '', adapter: 6, virtualbox__intnet: "vlan"},
+                ]
+  },
+  
+  :centralServer => {
+        :box_name => "centos/7",
+        :disks => {
+                :sata1 => {
+                        :dfile => home + '/VirtualBox VMs/disks/sata2.vdi',
+                        :size => 5000,
+                        :port => 1
+                }
+        },
+        :net => [
+                   {ip: '192.168.2.2', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "uplinkcentral"},
+                ]
+  },
+  
+  :office1Server => {
+        :box_name => "centos/7",
+        :disks => {
+                :sata1 => {
+                        :dfile => home + '/VirtualBox VMs/disks/sata3.vdi',
+                        :size => 5000,
+                        :port => 1
+                }
+        },
+        :net => [
+                   {ip: '192.168.1.2', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "internaloffice1"},
+                ]
+  },
+  :office2Server => {
+        :box_name => "centos/7",
+        :disks => {
+                :sata1 => {
+                        :dfile => home + '/VirtualBox VMs/disks/sata4.vdi',
+                        :size => 5000,
+                        :port => 1
+                }
+        },
+        :net => [
+                   {ip: '192.168.3.2', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "internaloffice2"},
+                ]
+  },
+  :office1Router => {
+        :box_name => "centos/7",
+        :disks => {
+                :sata1 => {
+                        :dfile => home + '/VirtualBox VMs/disks/sata5.vdi',
+                        :size => 5000,
+                        :port => 1
+                }
+        },
+        :net => [
+                   {ip: '192.168.1.1', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "internaloffice1"},
+                   {ip: '10.10.1.2', adapter: 3, netmask: "255.255.255.0", virtualbox__intnet: "uplinkoffice1"},
+                ]
+  },
+  :office2Router => {
+        :box_name => "centos/7",
+        :disks => {
+                :sata1 => {
+                        :dfile => home + '/VirtualBox VMs/disks/sata6.vdi',
+                        :size => 5000,
+                        :port => 1
+                }
+        },
+        :net => [
+                   {ip: '192.168.3.1', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "internaloffice2"},
+                   {ip: '10.10.2.2', adapter: 3, netmask: "255.255.255.0", virtualbox__intnet: "uplinkoffice2"},
+                ]
+  },
+  :testClient1 => {
+        :box_name => "centos/7",
+        :disks => {
+                :sata1 => {
+                        :dfile => home + '/VirtualBox VMs/disks/sata7.vdi',
+                        :size => 5000,
+                        :port => 1
+                }
+        },
+        :net => [
+                   {ip: '10.10.10.1', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "vlan"},
+                ]
+  },
+  :testClient2 => {
+        :box_name => "centos/7",
+        :disks => {
+                :sata1 => {
+                        :dfile => home + '/VirtualBox VMs/disks/sata8.vdi',
+                        :size => 5000,
+                        :port => 1
+                }
+        },
+        :net => [
+                   {ip: '10.10.10.1', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "vlan"},
+                ]
+  },
+  :testServer1 => {
+        :box_name => "centos/7",
+        :disks => {
+                :sata1 => {
+                        :dfile => home + '/VirtualBox VMs/disks/sata9.vdi',
+                        :size => 5000,
+                        :port => 1
+                }
+        },
+        :net => [
+                   {ip: '10.10.10.254', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "vlan"},
+                ]
+  },
+  :testServer2 => {
+        :box_name => "centos/7",
+        :disks => {
+                :sata1 => {
+                        :dfile => home + '/VirtualBox VMs/disks/sata10.vdi',
+                        :size => 5000,
+                        :port => 1
+                }
+        },
+        :net => [
+                   {ip: '10.10.10.254', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "vlan"},
+                ]
+  },
+}
+
+Vagrant.configure("2") do |config|
+
+  MACHINES.each do |boxname, boxconfig|
+
+    config.vm.define boxname do |box|
+
+        box.vm.provider :virtualbox do |vb|
+            	  vb.customize ["modifyvm", :id, "--memory", "512"]
+        end
+        box.vm.box = boxconfig[:box_name]
+        box.vm.host_name = boxname.to_s
+
+        boxconfig[:net].each do |ipconf|
+          box.vm.network "private_network", ipconf
+        end
+        
+        if boxconfig.key?(:public)
+          box.vm.network "public_network", boxconfig[:public]
+        end
+
+        box.vm.provision "shell", inline: <<-SHELL
+          mkdir -p ~root/.ssh
+                cp ~vagrant/.ssh/auth* ~root/.ssh
+        SHELL
+        
+        case boxname.to_s
+        when "inetRouter"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+            sysctl net.ipv4.conf.forwarding=1
+            sysctl --system
+            iptables -t nat -A POSTROUTING -s 10.10.0.0/24 -o eth0 -j MASQUERADE
+            iptables -t nat -A POSTROUTING -s 10.10.1.0/24 -o eth0 -j MASQUERADE
+            iptables -t nat -A POSTROUTING -s 10.10.2.0/24 -o eth0 -j MASQUERADE
+            iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j MASQUERADE
+            iptables -t nat -A POSTROUTING -s 192.168.2.0/24 -o eth0 -j MASQUERADE
+            iptables -t nat -A POSTROUTING -s 192.168.3.0/24 -o eth0 -j MASQUERADE
+            ip route add 10.10.1.0/24 via 10.10.0.3 dev eth1
+            ip route add 10.10.2.0/24 via 10.10.0.3 dev eth1
+            ip route add 192.168.1.0/24 via 10.10.0.3 dev eth1
+            ip route add 192.168.2.0/24 via 10.10.0.3 dev eth1
+            ip route add 192.168.3.0/24 via 10.10.0.3 dev eth1
+            SHELL
+        when "testClient1"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            ip route del default dev eth0
+            ip route add default dev eth1
+            systemctl restart network
+            SHELL
+        when "testClient2"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            ip route del default dev eth0
+            ip route add default dev eth1
+            systemctl restart network
+            SHELL
+        when "testServer1"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            ip route del default dev eth0
+            ip route add default dev eth1
+            systemctl restart network
+            SHELL
+        when "testServer1"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            ip route del default dev eth0
+            ip route add default dev eth1
+            systemctl restart network
+            SHELL
+        when "centralRouter"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+            sysctl --system
+            nmcli c mod "System eth0" ipv4.never-default true
+            echo "GATEWAY=10.10.0.4" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+            systemctl restart network
+            ip route add 192.168.1.0/24 via 10.10.1.2 dev eth2
+            ip route add 192.168.3.0/24 via 10.10.2.2 dev eth3
+            ip route add 10.10.10.0/24 dev eth5
+            SHELL
+        when "centralServer"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            nmcli c mod "System eth0" ipv4.never-default true
+            echo "GATEWAY=192.168.2.1" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+            systemctl restart network
+            SHELL
+        when "office1Server"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            nmcli c mod "System eth0" ipv4.never-default true
+            echo "GATEWAY=192.168.1.1" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+            systemctl restart network
+            SHELL
+        when "office2Server"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            nmcli c mod "System eth0" ipv4.never-default true
+            echo "GATEWAY=192.168.3.1" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+            systemctl restart network
+            SHELL
+        when "office1Router"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+            sysctl --system
+            nmcli c mod "System eth0" ipv4.never-default true
+            echo "GATEWAY=10.10.1.1" >> /etc/sysconfig/network-scripts/ifcfg-eth2
+            systemctl restart network
+            ip route add 192.168.3.0/24 via 10.10.1.1 dev eth2
+            ip route add 192.168.2.0/24 via 10.10.1.1 dev eth2
+            SHELL
+        when "office2Router"
+          box.vm.provision "shell", run: "always", inline: <<-SHELL
+            echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+            sysctl --system
+            nmcli c mod "System eth0" ipv4.never-default true
+            echo "GATEWAY=10.10.2.1" >> /etc/sysconfig/network-scripts/ifcfg-eth2
+            systemctl restart network
+            ip route add 192.168.2.0/24 via 10.10.2.1 dev eth2
+            ip route add 192.168.1.0/24 via 10.10.2.1 dev eth2
+            SHELL
+        end
+
+      end
+
+  end
+  
+  
+end

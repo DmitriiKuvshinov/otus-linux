@@ -1,0 +1,30 @@
+---
+- hosts: all
+  become: true
+  tasks:
+  - name: Vlan | Stop NetworkManager
+    command: systemctl stop NetworkManager
+  - name: Vlan | Disable NetworkManager
+    command: systemctl disable NetworkManager
+  - name: Vlan | install needed network manager libs
+    package:
+      name:
+        - NetworkManager-glib
+        - nm-connection-editor
+        - libsemanage-python
+        - policycoreutils-python
+      state: present
+  - name: Vlan | Enable 8021q
+    command: modprobe 8021q
+  - name: Vlan | Enable module on boot        
+    command: echo "8021q" >> /etc/modules
+  - name: Vlan | Copy VLAN 100 config
+    template:
+      src: ifcfg-eth5.100
+      dest: /etc/sysconfig/network-scripts/ifcfg-eth5.100
+  - name: Vlan | Copy VLAN 101 config                   
+    template:
+      src: ifcfg-eth5.101
+      dest: /etc/sysconfig/network-scripts/ifcfg-eth5.101
+  - name: Vlan | Reboot
+    command: reboot
