@@ -1,5 +1,0 @@
-DEVICE=eth4.100
-BOOTPROTO=none
-ONBOOT=yes
-PREFIX=24
-VLAN=yes
