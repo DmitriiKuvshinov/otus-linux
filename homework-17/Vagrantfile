@@ -9,7 +9,8 @@ MACHINES = {
         :box_name => "centos/6",
         #:public => {:ip => '10.10.10.1', :adapter => 1},
         :net => [
-                   {ip: '10.10.0.4', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "inet"},
+                   {ip: '', adapter: 2, virtualbox__intnet: "inet"},
+                   {ip: '', adapter: 7, virtualbox__intnet: "inet"},
                 ]
   },
   :centralRouter => {
@@ -22,11 +23,12 @@ MACHINES = {
 		}
         },
         :net => [
-                   {ip: '10.10.0.3', adapter: 2, netmask: "255.255.255.0", virtualbox__intnet: "inet"},
+                   {ip: '', adapter: 2, virtualbox__intnet: "inet"},
                    {ip: '10.10.1.1', adapter: 3, netmask: "255.255.255.0", virtualbox__intnet: "uplinkoffice1"},
                    {ip: '10.10.2.1', adapter: 4, netmask: "255.255.255.0", virtualbox__intnet: "uplinkoffice2"},
                    {ip: '192.168.2.1', adapter: 5, netmask: "255.255.255.0", virtualbox__intnet: "uplinkcentral"},
                    {ip: '', adapter: 6, virtualbox__intnet: "vlan"},
+                   {ip: '', adapter: 7, virtualbox__intnet: "inet"},
                 ]
   },
   

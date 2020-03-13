@@ -1,0 +1,6 @@
+TYPE=Ethernet
+BOOTPROTO=none
+DEVICE=eth6
+ONBOOT=yes
+MASTER=bond0
+SLAVE=yes

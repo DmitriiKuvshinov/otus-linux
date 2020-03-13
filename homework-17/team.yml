@@ -1,0 +1,56 @@
+---
+- hosts: centralRouter
+  become: true
+  tasks:
+  - name: Bond | Install python lib
+    yum:
+      name: libselinux-python
+      state: latest
+  - name: Bond | modprobe
+    command: modprobe bonding
+  - name: Bond | Copy team conf file
+    template:
+      src: ifcfg-bond0.central
+      dest: /etc/sysconfig/network-scripts/ifcfg-bond0
+  - name: Bond | Copy eth1 conf file
+    template:
+      src: ifcfg-eth1
+      dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+  - name: Bond | Copy eth6 conf file
+    template:
+      src: ifcfg-eth6
+      dest: /etc/sysconfig/network-scripts/ifcfg-eth6
+  - name: Bond | Bring down eth1
+    command: ip link set eth1 down
+  - name: Bond | Bring down eth6
+    command: ip link set eth6 down
+  - name: Bond | Restart network
+    command: /etc/init.d/network restart
+
+- hosts: inetRouter
+  become: true
+  tasks:
+  - name: Bond | Install python lib
+    yum:
+      name: libselinux-python
+      state: latest
+  - name: Bond | modprobe
+    command: modprobe bonding
+  - name: Bond | Copy team conf file
+    template:
+      src: ifcfg-bond0.inet
+      dest: /etc/sysconfig/network-scripts/ifcfg-bond0
+  - name: Bond | Copy eth1 conf file
+    template:
+      src: ifcfg-eth1
+      dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+  - name: Bond | Copy eth2 conf file
+    template:
+      src: ifcfg-eth2
+      dest: /etc/sysconfig/network-scripts/ifcfg-eth2
+  - name: Bond | Bring down eth1
+    command: ip link set eth1 down
+  - name: Bond | Bring down eth2
+    command: ip link set eth2 down
+  - name: Bond | Restart network
+    command: /etc/init.d/network restart
