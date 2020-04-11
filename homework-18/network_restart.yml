@@ -1,0 +1,6 @@
+---
+  - hosts: centralRouter, centralServer
+    become: true
+    tasks:
+    - name: restart network
+      command: systemctl restart network
