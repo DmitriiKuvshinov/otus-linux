@@ -1,0 +1,10 @@
+---
+  - hosts: inetRouter
+    become: true
+    tasks:
+    - name: knock | Copy FW-rules
+      copy:
+        src: ./fw-rules
+        dest: /etc/fw-rules
+    - name: knock | iptables-restore
+      command: iptables-restore < /etc/fw-rules

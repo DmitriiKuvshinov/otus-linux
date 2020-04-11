@@ -1,0 +1,24 @@
+---
+  - hosts: centralServer
+    become: true
+    tasks:
+    - name: nginx | copy repo file
+      copy:
+        src: ./nginx.repo
+        dest: /etc/yum.repos.d/nginx.repo
+    - name: nginx | yum update -y
+      command: yum update -y
+    - name: nginx | yum install
+      yum:
+        name: nginx
+        state: latest
+      notify:
+        - start nginx
+    - name: nginx | autostart
+      command: systemctl enable nginx
+    handlers:
+      - name: start nginx
+        systemd:
+          name: nginx
+          state: restarted
+          enabled: yes
