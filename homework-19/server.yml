@@ -1,0 +1,31 @@
+---
+  - hosts: server
+    become: true
+    tasks:
+    - name: openvpn | install epel
+      yum:
+        name: epel-release
+        state: latest
+    - name: openvpn | install openvpn
+      yum:
+        name: openvpn
+        state: latest
+    - name: openvpn | install iperf3
+      yum:
+        name: iperf3
+        state: latest
+    - name: openvpn | create key
+      command: openvpn --genkey --secret /etc/openvpn/static.key
+    - name: openvpn | copy conf     
+      copy:
+        src: ./server.conf
+        dest: /etc/openvpn/server.conf
+    - name: openvpn | restart service
+      command: systemctl restart openvpn@server      
+    - name: openvpn | autostart
+      command: systemctl enable openvpn@server
+    - name: openvpn | copy key to local     
+      fetch:
+        src: /etc/openvpn/static.key
+        dest: ./static.key
+        flat: yes

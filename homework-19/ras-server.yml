@@ -1,0 +1,18 @@
+---
+  - hosts: server
+    become: true
+    tasks:
+    - name: openvpn | install epel
+      yum:
+        name: epel-release
+        state: latest
+    - name: openvpn | install openvpn
+      yum:
+        name: openvpn
+        state: latest
+    - name: openvpn | install easy-rsa
+      yum:
+        name: easy-rsa
+        state: latest
+    - name: openvpn | copy sh script     
+      command: chmod +x /vagrant/ras.sh
