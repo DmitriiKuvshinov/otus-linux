@@ -1,0 +1,10 @@
+hostname R2
+
+router ospf
+    ospf router-id 192.168.12.9
+    network 192.168.12.0/24 area 0
+    network 192.168.20.0/24 area 0
+    network 10.2.0.0/24 area 2
+    redistribute connected
+
+log file /var/log/quagga/ospfd.log

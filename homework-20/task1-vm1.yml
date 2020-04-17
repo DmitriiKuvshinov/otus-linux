@@ -1,0 +1,37 @@
+---
+- hosts: vm1
+  become: true
+  tasks:
+  - name: OSPF | enable zebra
+    command: systemctl enable zebra
+  - name: OSPF | enable OSPF
+    command: systemctl enable ospfd
+  - name: OSPF | Copy OSPF conf
+    template:
+      src: ./task1/ospf-vm1
+      dest: /etc/quagga/ospfd.conf
+      owner: quagga
+      group: quaggavt
+    notify:
+      - restart ospfd
+  - name: OSPF | Copy ZEBRA conf
+    template:
+      src: ./task1/zebra-vm1
+      dest: /etc/quagga/zebra.conf
+      owner: quagga
+      group: quagga
+  - name: Vlan | Reboot
+    command: systemctl restart network
+    notify:
+      - restart zebra
+  handlers:
+    - name: restart ospfd
+      systemd:
+        name: ospfd
+        state: restarted
+        enabled: yes
+    - name: restart zebra
+      systemd:
+        name: zebra
+        state: restarted
+        enabled: yes

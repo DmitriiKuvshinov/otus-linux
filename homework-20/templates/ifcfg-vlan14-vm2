@@ -1,0 +1,8 @@
+DEVICE=eth2.14
+ONBOOT=yes
+VLAN=yes
+   BOOTPROTO=static
+   ONBOOT=yes
+   TYPE=Vlan
+   IPADDR=192.168.14.1
+   NETMASK=255.255.255.252
