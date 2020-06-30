@@ -10,9 +10,7 @@ chmod +x /usr/bin/borg
 ```
 Пропишем в hosts адреса ВМ для клиента и сервера. На сервере создадим директории:
 ```
-mkdir -p /home/borg/backup/full/
-mkdir -p /home/borg/backup/10min/
-mkdir -p /home/borg/backup/30min/
+mkdir -p /home/borg/backup/hourly/{1..12}
 ```
 Приступаем к выполнению ДЗ:
 ## full backup 1 раз в час
