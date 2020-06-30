@@ -15,53 +15,52 @@ mkdir -p /home/borg/backup/10min/
 mkdir -p /home/borg/backup/30min/
 ```
 Приступаем к выполнению ДЗ:
-## full backup 1 раз в день
+## full backup 1 раз в час
 Пишем скрипт:
 ```
 #!/bin/bash
-
-borg init -e none borg@server:backup/full/$(date +%A)
-
-borg delete borg@server:backup/full/$(date +%A)/::"full-etc"
-
-borg create --stats borg@server:backup/full/$(date +%A)/::"full-etc" /etc
+# Получаем день
+date=$(date +%d) 
+# Получаем час
+time=$(date +%H)
+# Получаем месяц
+m=$(date +%-m)
+# Получаем месяц -1
+m1=$(date '+%-m' --date='-1 month')
+# Получаем месяц -2
+m2=$(date '+%-m' --date='-2 month')
+borg init -e none borg@server:backup/hourly/"$m"/ 2> /var/log/borg/"$date.$time".log
+borg delete borg@server:backup/hourly/"$m"/::"full-etc-$date-$time" 2>> /var/log/borg/"$date.$time".log
+borg create --stats borg@server:backup/hourly/"$m/"::"full-etc-$date-$time" /etc 2>> /var/log/borg/"$date.$time".log
+if [[ $date -eq 28 ]]; then
+	borg prune -v --show-rc --list borg@server:backup/hourly/$m1 --keep-last=1 2>> /var/log/borg/"$date.$time".log
+	borg prune -v --show-rc --list borg@server:backup/hourly/$m2 --keep-last=1 2>> /var/log/borg/"$date.$time".log
+	echo "prune"	
+fi
 ```
- Ротация архивов происходит по дням недели
-
-Архивы каждые 10 и 30 минут делаем аналогичным образом:
-```
-#!/bin/bash
-
-date=$(date +"%H:%M-%m-%d-%Y")
-
-borg init -e none borg@server:backup/$1min
-
-borg prune -v --show-rc --list borg@server:backup/$1min --keep-last=12
-
-borg create --stats borg@server:backup/$1min::"$1min-etc-$date" /etc
-```
-Запуск скрипта делаем с параметром (30 или 10 минут, в зависимости что нужно). Например: inc.sh 10 или inc.sh 30
-
 Создадим cron-job
 
 ```
-*/10 * * * * root/root/inc.sh 10 > /dev/null 2>&1
-*/30 * * * * root /root/inc.sh 30 > /dev/null 2>&1
-0 1 * * *    root /root/full.sh 30 > /dev/null 2>&1
+* */1 * * * root  /root/backup.sh > /dev/null 2>&1
 ```
 
-Для теста оставил последние 2 бэкапа. 
+Для теста создадим файл в директории /etc/123. Сделаем бэкап. Удалим файл и пробуем восстановить
+Смотри бэкапы: 
 ```
-[root@client ~]# borg list borg@server:backup/full/Friday
-full-etc                             Fri, 2020-01-24 01:00:17 [ce2b1387997ecf8d5c1a7b2353a1b42fb7b7342e57d1edefe415a595195f0beb]
-
-[root@client ~]# borg list borg@server:backup/10min
-10min-etc-06:10-01-24-2020           Fri, 2020-01-24 06:10:07 [fd7968a88ad281e80191c80e664e16611b5ff2139dedb2594aa4dd02e70b7b55]
-10min-etc-06:20-01-24-2020           Fri, 2020-01-24 06:20:07 [fb0ee4d9729a456d7cfc374ff6cb98437787241646926340f245a29a01d640d2]
-10min-etc-06:30-01-24-2020           Fri, 2020-01-24 06:30:13 [432fac1448306470a7bff4158d4a5420baf9a25ef263b398636aca9dc9c4307d]
-
-[root@client ~]# borg list borg@server:backup/30min
-30min-etc-05:30-01-24-2020           Fri, 2020-01-24 05:30:12 [b89db32dbd19cad2a0305750450d6c5ba0044f94a0bcc14bd0571a4426ace7da]
-30min-etc-06:00-01-24-2020           Fri, 2020-01-24 06:00:13 [7446ef09a5e57ccfd858e7d3e96353eb8d4f800030699cce6cc49edc3194913e]
-30min-etc-06:30-01-24-2020           Fri, 2020-01-24 06:30:13 [ed3f5927de15e17a73d516291b2c593411ff4a96709baf1d5142aca44c2ac246]
+[root@client etc]# borg list borg@server:backup/hourly/6
+full-etc-30-17                       Tue, 2020-06-30 17:46:25 [2d4bf6f01c5dbf235157f4124633507c52a20703ae17cc3acd234b97164f468f]
 ```
+Создадим директорию для монтирования и приступаем:
+```
+mkdir -p /mnt/backup
+borg mount borg@server:backup/hourly/6::full-etc-30-17 /mnt/backup/
+```
+Копируем из бэкапа нужный файл:
+```
+cp /mnt/backup/etc/123 /etc/
+```
+Отмонтируем:
+```
+borg umount /mnt/backup/
+```
+Вуаля. готово
