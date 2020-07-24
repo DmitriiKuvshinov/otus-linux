@@ -1,20 +1,12 @@
 ---
-- hosts: master,slave 
+- hosts: master,slave
   become: true
   tasks:
   - name: install the psql rpm from a remote repo
     yum:
       name: https://yum.postgresql.org/10/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
       state: present
-  - name: install epel-release
-    yum:
-      name: "{{ packages }}"
-      state: present
-    vars:
-      packages: 
-      - epel-release
-  - name: yum update
-    command: yum update && yum upgrade -y
+
   - name: install packages 
     yum:
       name: "{{ packages }}"
@@ -26,6 +18,10 @@
       - ntp
       - postgresql10-server
       - postgresql10
+      
+- hosts: master
+  become: true
+  tasks:
   - name: Init psql
     command: /usr/pgsql-10/bin/postgresql-10-setup initdb
   - name: enable psql
@@ -33,10 +29,6 @@
       name: postgresql-10.service
       state: started
       enabled: yes
-      
-- hosts: master
-  become: true
-  tasks:
   - name: Copy postgres hba
     copy:
       src: files/pg_hba.conf
@@ -58,7 +50,11 @@
       daemon_reload: yes
   - name: Create Role
     command: sudo -u postgres psql -c "CREATE ROLE replication WITH REPLICATION PASSWORD 'passw0rd' LOGIN"
-
+  - name: Create barman user
+    command: sudo -u postgres psql -c "CREATE ROLE barman WITH SUPERUSER LOGIN"
+  - name: Create barman user
+    command: sudo -u postgres psql -c "CREATE DATABASE testing"
+    
 ################
 
 - hosts: slave 
@@ -68,15 +64,6 @@
     systemd:
       state: stopped
       name: postgresql-10.service
-  - name: Purge data folder
-    command: rm -Rf /var/lib/pgsql/10/data/*
-  - name: Copy postgres hba
-    copy:
-      src: files/pg_hba.conf
-      dest: /var/lib/pgsql/10/data/pg_hba.conf
-      owner: postgres
-      group: postgres
-      mode: 0660
   - name: Copy postgres pgpass
     copy:
       src: files/.pgpass
@@ -84,10 +71,17 @@
       owner: postgres
       group: postgres
       mode: 0600
+  - name: Purge data folder
+    command: rm -Rf /var/lib/pgsql/10/data/*
   - name: Sync with master
     command: su -l postgres -c "pg_basebackup -h 192.168.50.10 -D /var/lib/pgsql/10/data/ -P -U replication --wal-method=stream"
-  - name: Create barman user
-    command: su -l postgres -c "CREATE ROLE barman WITH SUPERUSER LOGIN"
+  - name: Copy postgres hba
+    copy:
+      src: files/pg_hba.conf
+      dest: /var/lib/pgsql/10/data/pg_hba.conf
+      owner: postgres
+      group: postgres
+      mode: 0660
   - name: Copy postgres conf
     copy:
       src: files/slave_postgres.conf
@@ -147,12 +141,10 @@
       - barman
       - postgresql10-server
       - postgresql10
-  - name: Add user
-    command: adduser barman
   - name: .SSH folder
-    command: mkdir -p /home/barman/.ssh
+    command: mkdir -p /var/lib/barman/.ssh
   - name: chown
-    command: chown -R barman:barman /home/barman
+    command: chown -R barman:barman /var/lib/barman/.ssh
   - name: Copy authorized_keys
     copy:
       src: files/id_rsa
@@ -168,3 +160,7 @@
     copy:
       src: files/db.conf
       dest: /etc/barman.d/db.conf
+  - name: Create known hosts | .ssh
+    command: mkdir -p /root/.ssh
+  - name: Create known hosts | file
+    command: ssh-keyscan -H 192.168.50.10 >> ~/.ssh/known_hosts
