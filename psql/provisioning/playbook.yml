@@ -1,0 +1,170 @@
+---
+- hosts: master,slave 
+  become: true
+  tasks:
+  - name: install the psql rpm from a remote repo
+    yum:
+      name: https://yum.postgresql.org/10/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+      state: present
+  - name: install epel-release
+    yum:
+      name: "{{ packages }}"
+      state: present
+    vars:
+      packages: 
+      - epel-release
+  - name: yum update
+    command: yum update && yum upgrade -y
+  - name: install packages 
+    yum:
+      name: "{{ packages }}"
+      state: present
+    vars:
+      packages:
+      - net-tools
+      - nano
+      - ntp
+      - postgresql10-server
+      - postgresql10
+  - name: Init psql
+    command: /usr/pgsql-10/bin/postgresql-10-setup initdb
+  - name: enable psql
+    systemd:
+      name: postgresql-10.service
+      state: started
+      enabled: yes
+      
+- hosts: master
+  become: true
+  tasks:
+  - name: Copy postgres hba
+    copy:
+      src: files/pg_hba.conf
+      dest: /var/lib/pgsql/10/data/pg_hba.conf
+      owner: postgres
+      group: postgres
+      mode: 0660
+  - name: Copy postgres conf
+    copy:
+      src: files/master_postgres.conf
+      dest: /var/lib/pgsql/10/data/postgresql.conf
+      owner: postgres
+      group: postgres
+      mode: 0660
+  - name: Restart postgres
+    systemd:
+      state: restarted
+      name: postgresql-10.service
+      daemon_reload: yes
+  - name: Create Role
+    command: sudo -u postgres psql -c "CREATE ROLE replication WITH REPLICATION PASSWORD 'passw0rd' LOGIN"
+
+################
+
+- hosts: slave 
+  become: true
+  tasks:
+  - name: Stop postgres
+    systemd:
+      state: stopped
+      name: postgresql-10.service
+  - name: Purge data folder
+    command: rm -Rf /var/lib/pgsql/10/data/*
+  - name: Copy postgres hba
+    copy:
+      src: files/pg_hba.conf
+      dest: /var/lib/pgsql/10/data/pg_hba.conf
+      owner: postgres
+      group: postgres
+      mode: 0660
+  - name: Copy postgres pgpass
+    copy:
+      src: files/.pgpass
+      dest: /var/lib/pgsql/.pgpass
+      owner: postgres
+      group: postgres
+      mode: 0600
+  - name: Sync with master
+    command: su -l postgres -c "pg_basebackup -h 192.168.50.10 -D /var/lib/pgsql/10/data/ -P -U replication --wal-method=stream"
+  - name: Create barman user
+    command: su -l postgres -c "CREATE ROLE barman WITH SUPERUSER LOGIN"
+  - name: Copy postgres conf
+    copy:
+      src: files/slave_postgres.conf
+      dest: /var/lib/pgsql/10/data/postgresql.conf
+      owner: postgres
+      group: postgres
+      mode: 0660
+  - name: Copy recovery conf
+    copy:
+      src: files/recovery.conf
+      dest: /var/lib/pgsql/10/data/recovery.conf
+      owner: postgres
+      group: postgres
+      mode: 0660
+  - name: Start postgres
+    systemd:
+      state: started
+      name: postgresql-10.service
+  - name: Add user
+    command: adduser barman
+  - name: .SSH folder
+    command: mkdir -p /home/barman/.ssh
+  - name: chown
+    command: chown -R barman:barman /home/barman
+  - name: Copy authorized_keys
+    copy:
+      src: files/authorized_keys
+      dest: /home/barman/authorized_keys
+      owner: barman
+      group: barman
+      mode: 0400
+
+######################
+
+- hosts: backup 
+  become: true
+  tasks:
+  - name: install epel-release
+    yum:
+      name: "{{ packages }}"
+      state: present
+    vars:
+      packages: 
+      - epel-release
+  - name: yum update
+    command: yum update && yum upgrade -y
+  - name: install psql repo
+    yum:
+      name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+      state: present
+  - name: install barman 
+    yum:
+      name: "{{ packages }}"
+      state: present
+    vars:
+      packages:
+      - barman
+      - postgresql10-server
+      - postgresql10
+  - name: Add user
+    command: adduser barman
+  - name: .SSH folder
+    command: mkdir -p /home/barman/.ssh
+  - name: chown
+    command: chown -R barman:barman /home/barman
+  - name: Copy authorized_keys
+    copy:
+      src: files/id_rsa
+      dest: /var/lib/barman/.ssh/id_rsa
+      owner: barman
+      group: barman
+      mode: 0400
+  - name: Copy barman conf
+    copy:
+      src: files/barman.conf
+      dest: /etc/barman.conf
+  - name: Copy barman SERVER conf
+    copy:
+      src: files/db.conf
+      dest: /etc/barman.d/db.conf
