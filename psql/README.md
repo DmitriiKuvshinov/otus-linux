@@ -1,36 +1,49 @@
-#### SELinux: проблема с удаленным обновлением зоны DNS
+# PostgresSQL 
 
-Инженер настроил следующую схему:
+## Стенд
+master - 192.168.50.10
+slave - 192.168.50.11
+backup - 192.168.50.12
 
-- ns01 - DNS-сервер (192.168.50.10);
-- client - клиентская рабочая станция (192.168.50.15).
+vagrant up поднимает стенд и настраивает инфраструктуру.
 
-При попытке удаленно (с рабочей станции) внести изменения в зону ddns.lab происходит следующее:
-```bash
-[vagrant@client ~]$ nsupdate -k /etc/named.zonetransfer.key
-> server 192.168.50.10
-> zone ddns.lab
-> update add www.ddns.lab. 60 A 192.168.50.15
-> send
-update failed: SERVFAIL
->
+## Репликация
+Проверим работу ремпликации:
+
 ```
-Инженер перепроверил содержимое конфигурационных файлов и, убедившись, что с ними всё в порядке, предположил, что данная ошибка связана с SELinux.
+[root@slave log]# sudo -u postgres psql
+psql (10.13)
+Type "help" for help.
 
-В данной работе предлагается разобраться с возникшей ситуацией.
-
-
-#### Задание
-
-- Выяснить причину неработоспособности механизма обновления зоны.
-- Предложить решение (или решения) для данной проблемы.
-- Выбрать одно из решений для реализации, предварительно обосновав выбор.
-- Реализовать выбранное решение и продемонстрировать его работоспособность.
-
-
-#### Формат
-
-- README с анализом причины неработоспособности, возможными способами решения и обоснованием выбора одного из них.
-- Исправленный стенд или демонстрация работоспособной системы скриншотами и описанием.
-
-
+postgres=# SELECT now()-pg_last_xact_replay_timestamp();
+    ?column?     
+-----------------
+ 00:10:54.945087
+(1 row)
+```
+## Резервное копирование
+Проверим работу: 
+```
+[root@backup barman.d]# barman check db3
+Server db3:
+	WAL archive: FAILED (please make sure WAL shipping is setup)
+	PostgreSQL: OK
+	superuser or standard user with backup privileges: OK
+	PostgreSQL streaming: OK
+	wal_level: OK
+	replication slot: OK
+	directories: OK
+	retention policy settings: OK
+	backup maximum age: OK (no last_backup_maximum_age provided)
+	compression settings: OK
+	failed backups: OK (there are 0 failed backups)
+	minimum redundancy requirements: OK (have 0 backups, expected at least 0)
+	pg_basebackup: OK
+	pg_basebackup compatible: OK
+	pg_basebackup supports tablespaces mapping: OK
+	systemid coherence: OK (no system Id stored on disk)
+	pg_receivexlog: OK
+	pg_receivexlog compatible: OK
+	receive-wal running: OK
+	archiver errors: OK
+```
