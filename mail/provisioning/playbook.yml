@@ -1,0 +1,63 @@
+---
+  - hosts: mail
+    become: true
+    vars:
+      password: $1
+    tasks:
+    - name: install epel-release
+      yum:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages: 
+        - epel-release
+    - name: yum update
+      command: yum update && yum upgrade -y
+    - name: install packages 
+      yum:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+        - net-tools
+        - nano
+        - dovecot
+        - squirrelmail
+    - name: Copy postfix conf
+      copy:
+        src: files/postfix
+        dest: /etc/postfix/main.cf
+    - name: Restart postfix
+      systemd:
+        state: restarted
+        name: postfix.service
+        daemon_reload: yes
+    - name: Copy dovecot conf | Main
+      copy:
+        src: files/dovecot/dovecot
+        dest: /etc/dovecot/dovecot.conf
+    - name: Copy dovecot conf | Other
+      copy: src={{ item.src }} dest={{ item.dest }}
+      with_items:
+      - { src: 'files/dovecot/auth.conf', dest: '/etc/dovecot/conf.d/' }
+      - { src: 'files/dovecot/mail.conf', dest: '/etc/dovecot/conf.d/' }
+      - { src: 'files/dovecot/master.conf', dest: '/etc/dovecot/conf.d/' }
+    - name: Restart dovecot
+      systemd:
+        state: restarted
+        name: dovecot.service
+        daemon_reload: yes
+    - name: Copy httpd conf
+      copy:
+        src: files/squirrelmail.conf
+        dest: /etc/httpd/conf.d/squirrelmail.conf
+    - name: Restart httpd
+      systemd:
+        state: restarted
+        name: httpd.service
+    - name: Copy SquirrelMail conf
+      copy:
+        src: files/config.php
+        dest: /etc/squirrelmail/config.php
+    - name: Edit SeLinux
+      command: /usr/sbin/setsebool -P httpd_can_network_connect=1
