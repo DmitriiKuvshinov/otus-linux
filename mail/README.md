@@ -7,6 +7,7 @@
 ## Как проверить
 Через веб-интерфейс войти: http://localhost/webmail под одним из созданных пользователей
 С хост-машины выполнить: 
+```
 telnet 127.0.0.1 25
 Trying 127.0.0.1...
 Connected to localhost.
@@ -40,4 +41,4 @@ est
 quit
 221 2.0.0 Bye
 Connection closed by foreign host.
-
+```
