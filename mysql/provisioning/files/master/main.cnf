@@ -1,0 +1,110 @@
+[client]
+default-character-set=cp1251
+port            = 3306
+socket=/var/lib/mysql/mysql.sock
+
+[mysqld_safe]
+socket=/var/lib/mysql/mysql.sock
+nice            = 0
+
+[mysqld]
+validate_password_special_char_count=0
+validate_password_policy=LOW
+sql-mode=NO_UNSIGNED_SUBTRACTION,ALLOW_INVALID_DATES,NO_ENGINE_SUBSTITUTION
+
+## Basic Settings
+# Logs
+log_error = /var/log/mysql/mysql.err
+slow_query_log_file = /var/log/mysql/slow.log
+#
+user            = mysql
+#pid-file        = /var/run/mysqld/mysqld.pid
+socket=/var/lib/mysql/mysql.sock
+port            = 3306
+basedir         = /usr
+datadir         = /var/lib/mysql
+tmpdir          = /tmp
+lc-messages-dir = /usr/share/mysql
+skip-external-locking
+innodb_stats_on_metadata=0
+back_log=2048
+#bind-address            = 127.0.0.1
+#skip-innodb
+key_buffer_size         = 1G
+
+max_allowed_packet = 512M
+slave-pending-jobs-size-max = 512M
+table_open_cache = 6144
+table_definition_cache = 6144
+max_heap_table_size = 1024M
+tmp_table_size = 1024M
+sort_buffer_size = 8M
+read_buffer_size = 10M
+read_rnd_buffer_size = 10M
+myisam_sort_buffer_size = 256M
+thread_cache_size = 256
+max_connections = 512
+connect_timeout = 30
+interactive_timeout = 28800
+wait_timeout=28800
+net_write_timeout=45
+net_read_timeout=75
+character-set-server = cp1251
+init-connect="SET NAMES cp1251"
+long_query_time=1
+skip-name-resolve
+skip-host-cache
+query_cache_size = 512M
+query_cache_limit = 16M
+# skip-slave-start
+#skip-locking
+# Try number of CPU's*2 for thread_concurrency - DEPRECATED
+#thread_concurrency = 24
+##
+
+## REPLICATION
+
+server-id=200
+log_bin             = /var/log/mysql/mysql-bin.log
+log_bin_index       = /var/log/mysql/mysql-bin.log.index
+relay_log           = /var/log/mysql/mysql-relay-bin
+relay_log_index     = /var/log/mysql/mysql-relay-bin.index
+
+#replicate-do-db = team_prod
+replicate-ignore-db=information_schema
+replicate-ignore-db=mysql
+replicate-ignore-db=performance_schema
+binlog-ignore-db = information_schema
+binlog-ignore-db = mysql
+binlog-ignore-db = performance_schema
+expire_logs_days    = 10
+max_binlog_size     = 100M
+log-slave-updates
+auto_increment_increment = 2
+auto_increment_offset = 2
+binlog-format=MIXED
+gtid-mode = ON
+enforce_gtid_consistency=true
+
+innodb_buffer_pool_size = 2G
+innodb_log_file_size = 5242880
+
+innodb_stats_on_metadata = 0
+
+
+[mysqldump]
+quick
+max_allowed_packet = 16M
+
+[mysql]
+no-auto-rehash
+# Remove the next comment character if you are not familiar with SQL
+safe-updates
+
+[isamchk]
+sort_buffer_size = 256M
+read_buffer = 2M
+write_buffer = 2M
+
+[mysqlhotcopy]
+interactive-timeout

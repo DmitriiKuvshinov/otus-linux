@@ -1,0 +1,114 @@
+---
+  - hosts: all
+    become: true
+    vars:
+      mysql_password: "passw0rd"
+    tasks:
+    - name: Install percona repository
+      yum: 
+        name: "https://repo.percona.com/yum/percona-release-latest.noarch.rpm"
+        state: present
+    - name: Install percona server
+      yum: 
+        name: 
+          - Percona-Server-server-57
+          - MySQL-python
+        state: present
+    - name: Create mysql DIR
+      file:
+        path: /var/log/mysql
+        state: directory
+        owner: mysql
+        group: mysql
+        mode: 0775
+    - name: restart mysql
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+      
+  - hosts: master
+    become: true
+    vars:
+      mysql_password: "passw0rd"
+      replication_user: "replication"
+      replication_password: "replication"
+    tasks:
+    - name: Copy mysql configs
+      copy:
+        src: files/master/main.cnf
+        dest: /etc/my.cnf.d/
+    - name: restart mysql
+      service:
+        name: mysql
+        state: restarted
+    - name: Set temp mysql password
+      shell: grep 'A temporary password is generated' /var/log/mysqld.log | awk '{print $11}' | head -1
+      register: temp_password
+    - name: Change mysql password
+      shell:
+        mysql --connect-expired-password -uroot -p'{{ temp_password.stdout }}' -e 'ALTER USER USER() IDENTIFIED BY "{{ mysql_password }}"'
+    - name: Create a bet DB
+      mysql_db:
+        login_user: root
+        login_password: "{{ mysql_password }}"
+        name: bet
+        state: present
+    - name: Import bet database
+      mysql_db:
+        login_user: root
+        login_password: "{{ mysql_password }}"
+        name: bet
+        state: import
+        target: /vagrant/provisioning/files/db.dmp
+    - name: Create database user with all database privileges
+      mysql_user:
+        login_user: root
+        login_password: "{{ mysql_password }}"
+        name: "{{ replication_user }}"
+        password: "{{ replication_password }}"
+        host: '%'
+        priv: '*.*:ALL'
+        state: present
+    - name: copy .my.cnf
+      copy: src=.my.cnf dest=/root/.my.cnf
+
+############
+
+  - hosts: slave
+    become: true
+    vars:
+      mysql_password: "passw0rd"
+      replication_user: "replication"
+      replication_password: "replication"
+    tasks:
+    - name: Copy mysql configs slave
+      copy:
+        src: files/slave/main.cnf
+        dest: /etc/my.cnf.d/
+    - name: restart mysql
+      service:
+        name: mysql
+        state: restarted
+    - name: Set temp mysql password
+      shell: grep 'A temporary password is generated' /var/log/mysqld.log | awk '{print $11}' | head -1
+      register: temp_password
+    - name: Change mysql password
+      shell:
+        mysql --connect-expired-password -uroot -p'{{ temp_password.stdout }}' -e 'ALTER USER USER() IDENTIFIED BY "{{ mysql_password }}"'
+    - name: Setup and run slave
+      shell: |
+        mysql \
+          -uroot \
+          -p'{{ mysql_password }}' \
+          -e 'CHANGE MASTER TO \
+            MASTER_HOST="192.168.50.10", \
+            MASTER_USER="{{ replication_user }}", \
+            MASTER_PASSWORD="{{ replication_password }}", \
+            MASTER_AUTO_POSITION=1;'
+        mysql \
+          -uroot \
+          -p'{{ mysql_password }}' \
+          -e 'START SLAVE;'
+    - name: copy .my.cnf
+      copy: src=.my.cnf dest=/root/.my.cnf
