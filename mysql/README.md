@@ -6,7 +6,7 @@ vagrant up
 1. vagrant ssh slave
 2. sudo -i
 3. mysql
-
+```
 mysql> show tables;
 +---------------+
 | Tables_in_bet |
@@ -79,3 +79,4 @@ db7c73eb-d1a5-11ea-a373-5254008afee6:1-39
                  Channel_Name: 
            Master_TLS_Version: 
 1 row in set (0.02 sec)
+```
