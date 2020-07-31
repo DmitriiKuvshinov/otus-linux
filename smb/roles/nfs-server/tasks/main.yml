@@ -1,0 +1,16 @@
+---
+- name: create directory for nfs share
+  file:
+    path: /mnt/storage
+    state: directory
+    owner: vagrant
+    group: vagrant
+    mode: '0755'
+
+- name: copy exports
+  copy: src=exports dest=/etc/exports
+  notify: restart nfs-server
+
+- name: copy nfs conf
+  copy: src=nfs.conf dest=/etc/nfs.conf
+  notify: restart nfs-server

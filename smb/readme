@@ -1,0 +1,61 @@
+==============[Задание]=================
+[vagrant up должен поднимать 2 виртуалки: сервер и клиент
+на сервер должна быть расшарена директория
+на клиента она должна автоматически монтироваться при старте (fstab или autofs)
+в шаре должна быть папка upload с правами на запись
+- требования для NFS: NFSv3 по UDP, включенный firewall
+
+
+==============[Решение]=================
+
+1. Разворачиваем стенд
+vagrant up
+
+2. Заходим на client
+
+[root@client ~]# cat /etc/fstab 
+
+#
+# /etc/fstab
+# Created by anaconda on Sat Jun  1 17:13:31 2019
+#
+# Accessible filesystems, by reference, are maintained under '/dev/disk'
+# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info
+#
+UUID=8ac075e3-1124-4bb6-bef7-a6811bf8b870 /                       xfs     defaults        0 0
+/swapfile none swap defaults 0 0
+192.168.100.15:/mnt/storage /mnt/nfs-share nfs noauto,x-systemd.automount,x-systemd.device-timeout=10,timeo=14 0 0
+
+[root@client ~]# showmount -e 192.168.100.15
+Export list for 192.168.100.15:
+/mnt/storage *
+
+[root@client ~]# touch /mnt/nfs-share/upload/file-today-now
+[root@client ~]# ls -la /mnt/nfs-share/upload/
+total 0
+drwxrwxr-x. 2 vagrant vagrant 28 Jul 18 18:18 .
+drwxr-xr-x. 3 vagrant vagrant 20 Jul 18 18:15 ..
+-rw-r--r--. 1 root    root     0 Jul 18 18:18 file-today-now
+
+4. Заходим на server
+
+[root@server ~]# ls -l /mnt/storage/upload/
+total 0
+-rw-r--r--. 1 root root 0 Jul 18 18:18 file-today-now
+
+[root@server ~]# firewall-cmd --state
+running
+[root@server ~]# firewall-cmd --list-all
+public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: eth0 eth1
+  sources: 
+  services: ssh dhcpv6-client nfs mountd rpc-bind
+  ports: 
+  protocols: 
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
