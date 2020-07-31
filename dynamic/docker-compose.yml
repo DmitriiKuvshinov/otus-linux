@@ -1,0 +1,63 @@
+version: "2"
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: crm-nginx
+    volumes:
+      - ./logs:/var/log/nginx
+      - ./laravel:/www
+      - ./files/laravel.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "445:445"
+      - "446:446"
+      - "447:447"
+    links:
+      - laravel
+      - django
+  laravel:
+    image: kuvshinov/php7.4
+    container_name: laravel
+    volumes:
+      - ./laravel:/www
+  db:
+    image: postgres:10.1-alpine
+    container_name: db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+  django:
+    image: kvushinov/django
+    container_name: django
+    command: python /code/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./django:/code
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+  server:
+    container_name: server
+    build:
+      context: ./server/
+    command: /usr/app/node_modules/.bin/nodemon src/index.js
+    volumes:
+      - ./server/:/usr/app
+      - /usr/app/node_modules
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+  client:
+    container_name: client
+    build:
+      context: ./client/
+    command: npm start
+    volumes:
+      - ./client/:/usr/app
+      - /usr/app/node_modules
+    depends_on:
+      - server
+    ports:
+      - "3000:3000"
+volumes:
+  postgres_data:
