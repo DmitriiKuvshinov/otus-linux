@@ -1,36 +1,26 @@
-#### SELinux: проблема с удаленным обновлением зоны DNS
+# PSQL Репликация и бэкап
 
-Инженер настроил следующую схему:
+## Как запустить
+Выполнить vagrant up 
 
-- ns01 - DNS-сервер (192.168.50.10);
-- client - клиентская рабочая станция (192.168.50.15).
+## Как проверить
+Выполнить 
 
-При попытке удаленно (с рабочей станции) внести изменения в зону ddns.lab происходит следующее:
-```bash
-[vagrant@client ~]$ nsupdate -k /etc/named.zonetransfer.key
-> server 192.168.50.10
-> zone ddns.lab
-> update add www.ddns.lab. 60 A 192.168.50.15
-> send
-update failed: SERVFAIL
->
 ```
-Инженер перепроверил содержимое конфигурационных файлов и, убедившись, что с ними всё в порядке, предположил, что данная ошибка связана с SELinux.
+vagrant ssh backup
+sudo -i
+barman receive-wal db3 &
+barman check db3
 
-В данной работе предлагается разобраться с возникшей ситуацией.
+vagrant ssh master
+sudo -i
+sudo -u postgres psql
+select * from pg_switch_wal();
 
-
-#### Задание
-
-- Выяснить причину неработоспособности механизма обновления зоны.
-- Предложить решение (или решения) для данной проблемы.
-- Выбрать одно из решений для реализации, предварительно обосновав выбор.
-- Реализовать выбранное решение и продемонстрировать его работоспособность.
-
-
-#### Формат
-
-- README с анализом причины неработоспособности, возможными способами решения и обоснованием выбора одного из них.
-- Исправленный стенд или демонстрация работоспособной системы скриншотами и описанием.
-
-
+[root@backup .ssh]# barman switch-xlog --force --archive db3
+No switch performed because server 'db3' is a standby.
+Waiting for a WAL file from server 'db3' to be archived (max: 30 seconds)
+db3: pg_receivewal: finished segment at 0/7000000 (timeline 1)
+Processing xlog segments from streaming for db3
+	000000010000000000000006
+```

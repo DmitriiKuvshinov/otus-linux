@@ -109,7 +109,14 @@
   - name: Copy authorized_keys
     copy:
       src: files/authorized_keys
-      dest: /home/barman/authorized_keys
+      dest: /home/barman/.ssh/authorized_keys
+      owner: barman
+      group: barman
+      mode: 0400
+  - name: Copy authorized_keys
+    copy:
+      src: files/id_rsa
+      dest: /home/barman/.ssh/id_rsa
       owner: barman
       group: barman
       mode: 0400
@@ -149,6 +156,13 @@
     copy:
       src: files/id_rsa
       dest: /var/lib/barman/.ssh/id_rsa
+      owner: barman
+      group: barman
+      mode: 0400
+  - name: Copy authorized_keys
+    copy:
+      src: files/authorized_keys
+      dest: /var/lib/barman/.ssh/authorized_keys
       owner: barman
       group: barman
       mode: 0400

@@ -39,3 +39,17 @@ total 0
 [root@server ~]# firewall-cmd --state
 running
 ```
+
+Проверим порты, на которых сервер принимает соединения
+```
+[root@server ~]# rpcinfo -p localhost | grep nfs
+    100003    3   tcp   2049  nfs
+    100227    3   tcp   2049  nfs_acl
+    100003    3   udp   2049  nfs
+    100227    3   udp   2049  nfs_acl
+```
+Проверяем:
+```
+[root@client ~]# mount | grep 192
+192.168.50.10:/mnt/storage on /mnt/nfs-share type nfs (rw,relatime,vers=3,rsize=32768,wsize=32768,namlen=255,hard,proto=udp,timeo=11,retrans=3,sec=sys,mountaddr=192.168.50.10,mountvers=3,mountport=20048,mountproto=udp,local_lock=none,addr=192.168.50.10)
+```

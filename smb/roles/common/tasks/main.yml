@@ -14,7 +14,16 @@
     - nfs
     - mountd
     - rpc-bind
-
+- name: firewall rules for nfs ports
+  firewalld:
+    port: "{{ item }}"
+    permanent: yes
+    state: enabled
+  with_items:
+    - 111/tcp
+    - 111/udp
+    - 2049/tcp
+    - 2049/udp
 - name: firewall reload
   shell: firewall-cmd --reload
 
