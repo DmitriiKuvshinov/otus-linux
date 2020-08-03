@@ -9,8 +9,7 @@
 ```
 vagrant ssh backup
 sudo -i
-barman receive-wal db3 &
-barman check db3
+barman receive-wal --create-slot db3
 
 vagrant ssh master
 sudo -i
