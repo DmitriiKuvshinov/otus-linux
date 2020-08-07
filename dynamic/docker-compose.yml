@@ -25,7 +25,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
   django:
-    image: kvushinov/django
+    image: kuvshinov/django
     container_name: django
     command: python /code/manage.py runserver 0.0.0.0:8000
     volumes:
